@@ -1,0 +1,9 @@
+Date,Revenue,Country,Transaction_ID,Customer
+1/2/24,€1000,usa,TXN001,Acme Corp
+02-01-2024,$1200,U.S.,TXN002,
+1-3-2024,£900,UK,TXN003,British Ltd
+01/04/2024,€1100,usa,TXN004,Acme Corp
+1/2/24,€1000,usa,TXN001,Acme Corp
+05.01.2024,$800,US,TXN005,Tech Inc
+1/6/24,€1500,germany,TXN006,
+07-01-2024,$2000,U.S.A,TXN007,Global Systems
