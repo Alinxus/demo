@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { Brain, Upload, Send, Loader2, Sparkles, Zap, RotateCcw, FileSpreadsheet, CheckCircle2, MessageSquare, Table2, Users, Gauge, X, File, Database, Eye, Trash2 } from 'lucide-react';
+import { Brain, Upload, Send, Loader2, Sparkles, Zap, RotateCcw, FileSpreadsheet, CheckCircle2, MessageSquare, Table2, Users, Gauge, X, File } from 'lucide-react';
 import Papa from 'papaparse';
 import ReactMarkdown from 'react-markdown';
 
@@ -46,9 +46,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [csvData, setCsvData] = useState<string | null>(null);
   const [showFileIndicator, setShowFileIndicator] = useState(false);
-  const [showMemories, setShowMemories] = useState(false);
-  const [memories, setMemories] = useState<Array<{content: string; metadata: any; score: number}>>([]);
-  const [loadingMemories, setLoadingMemories] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -207,21 +204,6 @@ export default function Home() {
     }
   };
 
-  const fetchMemories = async () => {
-    setShowMemories(true);
-    setLoadingMemories(true);
-    try {
-      const res = await fetch(`/api/memories?userId=${encodeURIComponent(userId)}`);
-      const data = await res.json();
-      setMemories(data.memories || []);
-    } catch (error) {
-      console.error('Failed to fetch memories:', error);
-      setMemories([]);
-    } finally {
-      setLoadingMemories(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#0D0D0D]">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -255,13 +237,6 @@ export default function Home() {
           
           <div className="flex items-center gap-2">
             <button
-              onClick={fetchMemories}
-              className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 hover:text-white transition"
-            >
-              <Eye className="h-3 w-3" />
-              <span>My Memories</span>
-            </button>
-            <button
               onClick={resetSession}
               className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 hover:text-white transition"
             >
@@ -277,56 +252,6 @@ export default function Home() {
           </div>
         </div>
       </header>
-
-      {/* Memories Modal */}
-      {showMemories && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMemories(false)} />
-          <div className="relative w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-xl border border-white/10 bg-[#1a1a1a] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 p-4">
-              <div className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-white/70" />
-                <span className="font-medium text-white">Your Stored Memories</span>
-              </div>
-              <button
-                onClick={() => setShowMemories(false)}
-                className="rounded-lg p-1 text-white/40 hover:bg-white/10 hover:text-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="overflow-y-auto p-4 max-h-[60vh]">
-              {loadingMemories ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-white/40" />
-                </div>
-              ) : memories.length === 0 ? (
-                <div className="py-8 text-center text-white/40">
-                  <Database className="mx-auto h-8 w-8 mb-2" />
-                  <p>No memories stored yet.</p>
-                  <p className="text-sm">Start chatting and I'll remember your preferences!</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {memories.map((mem, i) => (
-                    <div key={i} className="rounded-lg border border-white/10 bg-white/5 p-3">
-                      <div className="text-xs text-white/40 mb-2">
-                        Score: {mem.score?.toFixed(2)} • {mem.metadata?.session_id || 'Unknown session'}
-                      </div>
-                      <pre className="text-sm text-white/80 whitespace-pre-wrap font-mono">{mem.content}</pre>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="border-t border-white/10 p-4">
-              <p className="text-xs text-white/40 text-center">
-                These are the memories Whisper stores for you. Each entry contains your conversation context.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="relative container mx-auto max-w-3xl px-4 py-12">
         <div className="mb-8 text-center">
