@@ -18,17 +18,20 @@ export async function GET(request: NextRequest) {
     // Query all memories for this user
     const memoryResult = await whisperClient.query({
       project: projectId,
-      query: 'conversation preferences',
+      query: 'conversation',
       top_k: 50,
-      hybrid: false,
+      hybrid: true,
       metadata_filter: {
         user_id: userId,
       },
     });
 
+    // Handle different response formats
+    const results = memoryResult.results || memoryResult.data || memoryResult.memories || [];
+    
     return NextResponse.json({
       success: true,
-      memories: memoryResult.results || [],
+      memories: results,
     });
   } catch (error: any) {
     console.error('Get memories error:', error);
