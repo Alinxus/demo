@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { Brain, Upload, Send, Loader2, Sparkles, Zap, RotateCcw, FileSpreadsheet, CheckCircle2, MessageSquare, Table2, Users, Gauge, X, File } from 'lucide-react';
+import { Brain, Upload, Send, Loader2, Sparkles, Zap, RotateCcw, FileSpreadsheet, CheckCircle2, MessageSquare, Table2, Users, Gauge, X, File, Database } from 'lucide-react';
 import Papa from 'papaparse';
 import ReactMarkdown from 'react-markdown';
 
@@ -35,6 +35,19 @@ export default function Home() {
     }
     setSessionId(sid);
   }, []);
+
+  const [memoryCount, setMemoryCount] = useState<number | null>(null);
+
+  const checkMemoryCapacity = async () => {
+    if (!userId) return;
+    try {
+      const res = await fetch(`/api/memories?userId=${userId}`);
+      const data = await res.json();
+      setMemoryCount(data.memories?.length ?? 0);
+    } catch {
+      setMemoryCount(-1);
+    }
+  };
 
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; csvData?: string; fileName?: string; memoryStats?: { used: boolean; memoriesFound: number; queryLatencyMs: number; topScore: number } }>>([
     {
@@ -151,6 +164,7 @@ export default function Home() {
           csvData,
           sessionId,
           userId,
+          history: messages.filter((m) => m.role === 'user' || m.role === 'assistant'),
         }),
       });
 
@@ -236,6 +250,13 @@ export default function Home() {
           )}
           
           <div className="flex items-center gap-2">
+            <button
+              onClick={checkMemoryCapacity}
+              className="flex items-center gap-2 rounded-lg bg-violet-500/10 border border-violet-500/20 px-3 py-1.5 text-xs text-violet-400 hover:bg-violet-500/20 transition"
+            >
+              <Database className="h-3 w-3" />
+              {memoryCount === null ? 'Check Memory' : memoryCount === -1 ? 'Error' : `${memoryCount} memories`}
+            </button>
             <button
               onClick={resetSession}
               className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:bg-white/10 hover:text-white transition"

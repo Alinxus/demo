@@ -11,7 +11,7 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, csvData, sessionId, userId } = await request.json();
+    const { message, csvData, sessionId, userId, history } = await request.json();
 
     if (!userId) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 });
@@ -84,27 +84,28 @@ ${csvData ? `\n## CURRENT CSV DATA:\n${csvData.substring(0, 3000)}\n` : ''}
 
 ## IMPORTANT:
 - If user has previous preferences in memory, USE THEM automatically
-- Be conversational and helpful
+- ACT IMMEDIATELY on clear requests — do not ask for confirmation. If the user says "clean NULLs", do it.
+- When the user picks a numbered option you listed (e.g. "1"), execute that option right away.
 - When you provide data transformations, ALWAYS include the CSV format so users can download
-- Suggest data cleaning operations
 - When user says "do the same thing" or "like before", check memory and apply those exact preferences
+- Only ask for clarification if the request is genuinely impossible to interpret.`;
 
-Respond naturally, like a helpful data assistant.`;
+    // 3. Call GPT-4o-mini with full conversation history
+    const conversationHistory = Array.isArray(history)
+      ? history
+          .filter((m: any) => m.role === 'user' || m.role === 'assistant')
+          .slice(-10) // keep last 10 turns to avoid token bloat
+          .map((m: any) => ({ role: m.role, content: m.content }))
+      : [];
 
-    // 3. Call GPT-4o-mini (latest, fastest, cheapest)
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
-        {
-          role: 'system',
-          content: systemPrompt,
-        },
-        {
-          role: 'user',
-          content: message,
-        },
+        { role: 'system', content: systemPrompt },
+        ...conversationHistory,
+        { role: 'user', content: message },
       ],
-      temperature: 0.7,
+      temperature: 0.3,
       max_tokens: 2000,
     });
 
